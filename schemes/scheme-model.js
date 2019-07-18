@@ -1,15 +1,6 @@
 const knex = require('knex');
 const config = require('../knexfile').development;
 
-module.exports = {
-  find,
-  findById,
-  findSteps,
-  add,
-  update,
-  remove
-};
-
 const db = knex(config);
 
 const find = () => db('schemes');
@@ -37,14 +28,19 @@ const update = (changes, id) =>
     .update(changes)
     .then(count => (count > 0 ? findById(id) : null));
 
-const remove = id =>
-  db('schemes')
-    .where({ id })
-    .first()
-    .then(scheme => scheme)
-    .then(res => {
-      db('schemes')
-        .where({ id })
-        .del();
-      return res ? res : null;
-    });
+const remove = async id => {
+  const deleted = await findById(id);
+  const count = await db('schemes')
+    .where('id', deleted.id)
+    .del();
+  return count > 0 ? deleted : null;
+};
+
+module.exports = {
+  find,
+  findById,
+  findSteps,
+  add,
+  update,
+  remove
+};
